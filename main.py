@@ -14,7 +14,8 @@ from labelbox.data.annotation_types import (
     )
 from labelbox.data.serialization import NDJsonConverter
 
-logging.basicConfig(level=logging.DEBUG)
+logger = logging.getLogger(__name__)
+logger.setLevel(level=logging.DEBUG)
 
 
 def main():
@@ -28,17 +29,17 @@ def main():
 
     try:
         project = next(projects_test)
-        logging.debug('Project test found (%)', project)
+        logger.debug('Project test found (%s)', project)
         project.delete()
     except StopIteration:
-        logging.debug('No such test project; creating...')
+        logger.debug('No such test project; creating...')
     finally:
         project = client.create_project(name=project_name, description='')
 
     project.enable_model_assisted_labeling()
-    logging.debug('MAL enabled.')
+    logger.debug('MAL enabled.')
 
-    logging.debug('Getting the ontology')
+    logger.debug('Getting the ontology')
     ontology = client.get_ontology(ontology_id='ckywqubua5nkp0zb2h9lm3vn7')
     ontology_builder = OntologyBuilder.from_ontology(ontology)
     editor = next(
@@ -49,21 +50,21 @@ def main():
     datasets_test = client.get_datasets(where=Dataset.name == dataset_name)
     try:
         dataset = next(datasets_test)
-        logging.debug('Found a test dataset (%s)', dataset)
+        logger.debug('Found a test dataset (%s)', dataset)
         dataset.delete()
     except StopIteration:
-        logging.debug('No such test dataset; creating one...')
+        logger.debug('No such test dataset; creating one...')
     finally:
         dataset = client.create_dataset(name=dataset_name, iam_integration=None)
 
     project.datasets.connect(dataset)
-    logging.debug('Attaching the dataset to the project.')
+    logger.debug('Attaching the dataset to the project.')
 
     canvas = np.zeros((2048, 2048), 'uint8')
     annotations = []
     random_2dpoints = np.random.randint(0, 2048, (10, 2))
     for r, c in random_2dpoints:
-        logging.debug('adding annot')
+        logger.debug('adding annot')
         cv2.circle(canvas, (r, c), 20, 255, thickness=cv2.FILLED)
         annot = ObjectAnnotation(name='Centriole', value=Point(x=r, y=c))
         annotations.append(annot)
